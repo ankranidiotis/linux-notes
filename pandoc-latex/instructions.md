@@ -60,8 +60,8 @@ To convert your Markdown file into a PDF, run the following command:
 pandoc paper.md \
     --from markdown --to pdf \
     --output final_paper.pdf \
-    --citeproc 
-    --template=eisvogel.latex 
+    --citeproc \
+    --template=eisvogel.latex \
     --pdf-engine=xelatex
 ```
 
