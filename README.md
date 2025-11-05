@@ -17,4 +17,6 @@ My personal knowledge base covering Linux, Pandoc, LaTeX and more.
 ## Misc
 - [Gmail Sync issue on HyperOS](misc/gmail-sync.md)
 - [yt-dlp](misc/yt-dlp.md)
+- [Τρόπος αποδοτικής μελέτης](misc/study_effieciently.md)
+
 
