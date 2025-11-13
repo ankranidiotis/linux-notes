@@ -10,6 +10,7 @@ My personal knowledge base covering Linux, Pandoc, LaTeX and more.
 - [Install GUI on Linux from command line](linux/install_gui_for_cmd.md)
 - [Install OCR on Linux](linux/ocr.md)
 - [OpenDNS Setup Guide (for Network-Wide Filtering)](linux/OpenDNS.md)
+- [Rclone Bi-Directional Sync (bisync)](linux/rclone_bisync.md)
 
 ## Google
 - [Setup Google Cloud Server](Google/gcloud.md)
