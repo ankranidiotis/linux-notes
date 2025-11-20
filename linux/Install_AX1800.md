@@ -3,7 +3,11 @@
 # INSTALLATION OF RTL8852AU ARCHER TX20U PLUS AX1800 DRIVER
 
 ## Linux Mint 22.2 Cinnamon
-The driver runs on Linux kernel 6.8.0-87-generic only.
+The driver runs on Linux kernel 6.8.0-87-generic only. To check which Linux kernel you are currently using, just run:
+
+```
+uname -r
+```
 
 To keep it permanently, do:
 
