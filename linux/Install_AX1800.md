@@ -30,7 +30,7 @@ sudo dkms install rtl8852au/1.15.0.1
 Run on terminal:
 
 ```
-wconfig
+iwconfig
 ```
 
 for general information, and 
