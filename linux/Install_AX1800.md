@@ -36,8 +36,8 @@ wconfig
 for general information, and 
 
 ```
-lsub
-lsub -t
+lsusb
+lsusb -t
 ```
 for speed information.
 
