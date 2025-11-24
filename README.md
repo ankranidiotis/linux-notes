@@ -22,4 +22,7 @@ My personal knowledge base covering Linux, Pandoc, LaTeX and more.
 - [yt-dlp](misc/yt-dlp.md)
 - [Τρόπος αποδοτικής μελέτης](misc/study_effieciently.md)
 
+## Obsidian
+- [Obsidian & Zotero](obsidian/zotero.md)
+
 
