@@ -23,6 +23,7 @@ My personal knowledge base covering Linux, Pandoc, LaTeX and more.
 - [Τρόπος αποδοτικής μελέτης](misc/study_effieciently.md)
 
 ## Obsidian
+- [Initial Setup](obsidian/initial_setup.md)
 - [Obsidian & Zotero](obsidian/zotero.md)
 
 ## Networking
