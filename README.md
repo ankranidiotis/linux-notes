@@ -21,6 +21,7 @@ My personal knowledge base covering Linux, Pandoc, LaTeX and more.
 - [Gmail Sync issue on HyperOS](misc/gmail-sync.md)
 - [yt-dlp](misc/yt-dlp.md)
 - [Τρόπος αποδοτικής μελέτης](misc/study_effieciently.md)
+- [Plex Server](misc/plex.md)
 
 ## Obsidian
 - [Initial Setup](obsidian/initial_setup.md)
