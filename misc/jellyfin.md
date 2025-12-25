@@ -1,6 +1,21 @@
-# Jellyfin
+# Οδηγός Εγκατάστασης Jellyfin & Tailscale σε Contabo VPS (Secure Setup)
 
-## Εγκατάσταση Docker
+Αυτός ο οδηγός περιγράφει την εγκατάσταση ενός απόλυτα ασφαλούς Media Server. Ο Jellyfin είναι προσβάσιμος μόνο μέσω του ιδιωτικού δικτύου Tailscale (VPN), καθιστώντας τον αόρατο σε scanners και hackers στο δημόσιο ίντερνετ.
+
+## 1. Ασφάλιση του VPS (SSH)
+Πριν ξεκινήσετε με το Docker, θωρακίστε την πρόσβαση στον ίδιο τον server.
+
+* **Χρήση SSH Keys:** Βεβαιωθείτε ότι συνδέεστε με κλειδιά.
+* **Απενεργοποίηση Password Login:**
+    * Εκτελέστε: `sudo nano /etc/ssh/sshd_config`
+    * Αλλάξτε τη γραμμή `PasswordAuthentication` σε `no`.
+* **Επανεκκίνηση SSH:**
+    * Εκτελέστε: `sudo systemctl restart ssh`
+
+---
+
+## 2. Εγκατάσταση Docker & Compose
+Εκτελέστε τις παρακάτω εντολές:
 
 ```bash
 sudo apt update && sudo apt upgrade -y
@@ -8,106 +23,25 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 sudo usermod -aG docker $USER
 ```
-Σημείωση: Θα χρειαστεί να αποσυνδεθείς (logout) και να ξαναμπείς (login) στο SSH για να ενεργοποιηθεί αυτή η αλλαγή.
-
-## Εγκατάσταση Docker Compose
+> **Σημείωση:** Κάντε logout και login για να ενεργοποιηθεί η συμμετοχή σας στο group docker.
 
 ```bash
 sudo apt install docker-compose-plugin
 ```
 
-## Εγκατάσταση Jellyfin σε Docker
+---
 
-**Δημιουργία φακέλων:**
-
+## 3. Προετοιμασία Φακέλων
+Εκτελέστε:
 ```bash
-mkdir -p ~/docker/jellyfin/config ~/docker/jellyfin/cache
+mkdir -p ~/docker/jellyfin/config ~/docker/jellyfin/cache ~/docker/jellyfin/tailscale_state
 sudo chown -R $USER:$USER ~/docker/jellyfin
 ```
 
-**Δημιουργία docker-compose.yml:**
+---
 
-```bash
-cd ~/docker/jellyfin
-nano docker-compose.yml
-```
-με περιεχόμενο:
-
-```yaml
-services:
-  jellyfin:
-    image: jellyfin/jellyfin
-    container_name: jellyfin
-    network_mode: bridge
-    ports:
-      - 127.0.0.1:8096:8096
-    volumes:
-      - /root/docker/jellyfin/config:/config
-      - /root/docker/jellyfin/cache:/cache
-      - /home/media/movies:/data/movies:rw
-      - /home/media/tvshows:/data/tvshows:rw
-    restart: unless-stopped
-```
-
-**Γιατί έβαλα 127.0.0.1:8096:8096**; Με αυτόν τον τρόπο, το Jellyfin δεν είναι προσβάσιμο από το internet ακόμα. Είναι προσβάσιμο μόνο "μέσα" από τον server. Αυτό το κάνουμε για να αναγκάσουμε την κίνηση να περάσει αργότερα από τον Reverse Proxy (SSL) ή το VPN που θα στήσουμε.
-
-**Εκκίνηση του container**
-
-```bash
-docker compose up -d
-```
-
-**Έλεγχος ασφαλείας**
-
-Το `http://IP-of-Contabo:8096` δεν πρέπει να τρέχει, γιατί έχουμε ορίσει 127.0.0.1:8096. Με SSH Tunnel θα μπορούμε να το προσβάλουμε από τον υπολογιστή μας.
-
-## Ρύθμιση του Jellyfin
-
-Δημιουργούμε τον SSH Tunnel με τον υπολογιστή μας.
-
-```bash
-ssh -L 8096:127.0.0.1:8096 root@IP-of-Contabo
-```
-
-Ανοίγουμε τον browser και πατάμε `http://127.0.0.1:8096` και ορίζουμε ένα username και password για τον Jellyfin. 
-
-> Set up remote access: YES
-
-**Απενεργοποίηση του transcoding**
-
-Πήγαινε στο Dashboard > Users > Media Playback και απενεργοποίησε το transcoding. Πάτα Save. 
-
-## Εγκατάσταση του Jellyfin Media Player
-
-Εγκαθιστούμε την Flatpak έκδοση από τον Package Manager του Linux.
-
-Για ελληνικούς υποτίτλους:
-
-1. Settings > Subtitles > Ελληνικά.
-2. Dashboard > Plugins > Subtitles > OpenSubtitles.
-3. Πάτα Install.
-
-Κάνουμε επανεκκίνηση του container:
-
-```bash
-cd ~/docker/jellyfin
-docker compose restart
-```
-και μετά πηγαίνουμε πάλι στα Plugins > Subtitles και ορίζουμε τον username και password του OpenSubtitles.
-
-*Ρύθμιση της Βιβλιοθήκης για Ελληνικά*
-Πρέπει να πεις στο Jellyfin να ψάχνει για ελληνικούς υπότιτλους κατά το σκανάρισμα:
-
-- Dashboard -> Libraries.
-- Πάτα τις 3 τελείες πάνω στη βιβλιοθήκη "Movies" -> Manage Library.
-- Σκρόλαρε κάτω στο Subtitles.
-- Επίλεξε το Greek στο "Download languages".
-- Τσέκαρε το κουτάκι OpenSubtitles (κάτω από το Subtitle downloaders).
-- Πάτα Save.
-
-## Εγκατάσταση και ρύθμιση VPN με Tailscale
-
-Στο αρχείο `docker-compose.yml` πρέπει να προσθέσουμε τον VPN:
+## 4. Ρύθμιση Docker Compose (Secure Sidecar Pattern)
+Δημιουργήστε το αρχείο `~/docker/jellyfin/docker-compose.yml` με το εξής περιεχόμενο. Η συγκεκριμένη διάταξη αναγκάζει το Jellyfin να χρησιμοποιεί αποκλειστικά το δίκτυο του Tailscale container (Sidecar pattern), κλείνοντας την "τρύπα" της δημόσιας IP.
 
 ```yaml
 services:
@@ -115,10 +49,10 @@ services:
     image: tailscale/tailscale:latest
     container_name: tailscale
     hostname: contabo-jellyfin
-    network_mode: host # Σημαντικό: Το Tailscale "πατάει" πάνω στο OS
-    privileged: true # <-- ΑΠΑΡΑΙΤΗΤΟ για να πειράξει το δίκτυο του host
+    network_mode: bridge
+    privileged: true
     environment:
-      - TS_AUTHKEY=xxx
+      - TS_AUTHKEY=tskey-auth-xxxx # Αντικαταστήστε με το δικό σας Auth Key από το Tailscale Admin Console
       - TS_STATE_DIR=/var/lib/tailscale
     volumes:
       - ./tailscale_state:/var/lib/tailscale
@@ -131,77 +65,65 @@ services:
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
-    network_mode: host # Σημαντικό: Το Jellyfin "βλέπει" το tailscale0 interface
+    # Σημαντικό: Το Jellyfin χρησιμοποιεί το δίκτυο του Tailscale
+    network_mode: "service:tailscale"
     volumes:
-      - /root/docker/jellyfin/config:/config
-      - /root/docker/jellyfin/cache:/cache
+      - ./config:/config
+      - ./cache:/cache
       - /home/media/movies:/data/movies:rw
       - /home/media/tvshows:/data/tvshows:rw
     restart: unless-stopped
 ```
 
-**Δημιουργία Auth Key**
+---
 
-Για να συνδεθεί αυτόματα ο Contabo χωρίς να χρειαστεί να πατήσεις link:
+## 5. Ρύθμιση Firewall (UFW)
+Επιτρέπουμε μόνο το SSH και την απαραίτητη κίνηση για το Tailscale. Η θύρα 8096 δεν εκτίθεται στο δημόσιο ίντερνετ.
 
-1. Μπες στο Tailscale Admin Console.
-2. Settings > Keys > Generate Auth Key.
-3. Reusable: YES
-4. Generate Key.
-5. Αντίγραψε το κλειδί (ξεκινάει από tskey-auth...) και βάλτο στο TS_AUTHKEY στο YAML σου.
-6. Ενημέρωσε το `docker-compose.yml` και ξανακινητοποιήσε το container.
-7. Στο Contabo, τρέξε
+**Βήμα 1: Έλεγχος Κατάστασης**
+Πριν εφαρμόσετε κανόνες, ελέγξτε αν το firewall είναι ήδη ενεργό για να αποφύγετε το κλείδωμα:
+```bash
+sudo ufw status
+```
+*Αν είναι `inactive`, προχωρήστε άφοβα. Αν είναι `active`, βεβαιωθείτε ότι έχετε ήδη ανοιχτή την πόρτα SSH.*
+
+**Βήμα 2: Εφαρμογή Κανόνων**
+Εκτελέστε τις εντολές με την εξής σειρά (η εντολή `limit ssh` εξασφαλίζει ότι δεν θα κλειδωθείτε έξω):
 
 ```bash
-sudo ufw allow 8096/tcp
-sudo chmod 666 /dev/net/tun
-```
-8. Ενημέρωσε το `docker-compose.yml` και ξανακινητοποιήσε το container.
-
-```bash
-cd ~/docker/jellyfin
-docker compose down
-docker compose up -d
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw limit ssh
+sudo ufw allow 41641/udp
+sudo ufw enable
 ```
 
-**Επιβεβαίωση Σύνδεσης**
-Μετά από λίγα δευτερόλεπτα, ο Contabo θα πρέπει να εμφανιστεί στο Tailscale δίκτυό σου. Μπορείς να το ελέγξεις με δύο τρόπους:
+---
 
-- Στο Web Panel: Μπες στο Tailscale Machines και δες αν υπάρχει το "contabo-jellyfin".
-- Στο Mint (Τερματικό): Τρέξε tailscale status. Θα πρέπει να δεις τον server στη λίστα με την IP του (π.χ. 100.64.0.5).
+## 6. Εκκίνηση και Αρχική Ρύθμιση
+* **Εκκίνηση:**
+    ```bash
+    cd ~/docker/jellyfin
+    docker compose up -d
+    ```
+* **Σύνδεση για πρώτη φορά:**
+    Επειδή ο server δεν είναι ακόμα προσβάσιμος εξ αποστάσεως, χρησιμοποιήστε SSH Tunnel από το PC σας:
+    `ssh -L 8096:127.0.0.1:8096 root@IP-of-Contabo`
+    Ανοίξτε το `http://127.0.0.1:8096` στον browser σας.
+* Στον Wizard επιλέξτε **"Allow remote connections"**.
 
+---
 
-**Σύνδεση στον Jellyfin Media Player**
-Τώρα που ο server είναι "δίπλα" στον υπολογιστή σου μέσω του VPN:
+## 7. Σύνδεση Συσκευών (Mint / Chromecast / Mobile)
+* **Tailscale IP:** Βρείτε την IP της μορφής `100.x.y.z` από το Tailscale Admin Panel.
+* **Σύνδεση:** Χρησιμοποιήστε τη διεύθυνση `http://100.x.y.z:8096` στις εφαρμογές Jellyfin.
+* **Επαλήθευση Ασφαλείας:** Με το Tailscale κλειστό στη συσκευή σας, η διεύθυνση `http://IP-of-Contabo:8096` δεν πρέπει να φορτώνει.
 
--Άνοιξε τον Jellyfin Media Player στο Linux Mint.
-- Αν σε βγάλει στην οθόνη επιλογής server, πάτα Add Server.
-- Στο Server Address, βάλε την Tailscale IP του Contabo: http://100.x.y.z:8096 (αντικατάστησε το 100.x.y.z με την πραγματική IP που βλέπεις στο Tailscale).
-- Κάνε login με το username και το password που δημιούργησες στον Wizard.
+---
 
-## Εγκατάσταση του Tailscale στο Google Chromecast with Google TV
+## 8. Πρόσθετες Ρυθμίσεις
+* **Transcoding:** Dashboard > Users > Media Playback > Απενεργοποίηση (για μείωση φόρτου CPU στο VPS).
+* **Plugins:** Dashboard > Plugins > OpenSubtitles.
+* **Library:** Dashboard > Libraries > Manage Library > Subtitles > Download languages: Greek.
 
-1. Εγκατάσταση του Tailscale στο Chromecast
-Για να μπορέσει το Chromecast να "δει" τον Contabo, πρέπει να μπει και αυτό στο ίδιο VPN δίκτυο.
-
-Άνοιξε το Play Store στην Google TV σου.
-
-Αναζήτησε και εγκατάστησε την εφαρμογή Tailscale.
-
-Άνοιξε το Tailscale και κάνε Log in (θα σου βγάλει ένα QR code ή έναν κωδικό για να τον βάλεις στο κινητό/PC σου).
-
-Μόλις συνδεθείς, πάτα το κουμπί για να γίνει Active. Θα δεις στη λίστα συσκευών μέσα στο Tailscale τον server σου (akran-media-server).
-
-2. Εγκατάσταση του Jellyfin App
-Πήγαινε πάλι στο Play Store της Google TV.
-
-Αναζήτησε και εγκατάστησε την επίσημη εφαρμογή Jellyfin.
-
-Άνοιξε το Jellyfin.
-
-3. Σύνδεση στον Server
-Όταν το Jellyfin σου ζητήσει τη διεύθυνση του server:
-
-Πληκτρολόγησε την Tailscale IP του Contabo: http://100.125.30.84:8096
-
-Βάλε το username και το password που δημιούργησες.
+**Σημείωση:** Με αυτό το setup, η κίνηση των δεδομένων σας είναι πλήρως κρυπτογραφημένη και ο server παραμένει αόρατος σε οποιονδήποτε τρίτο στο διαδίκτυο.
