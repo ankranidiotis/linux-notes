@@ -96,9 +96,30 @@ sudo nano /etc/ssh/sshd_config
 - PasswordAuthentication no
 - Pub key authentication yes
 - AuthorizedKeysFile .ssh/authorized _keys
+- port 22 σε port 4822 (ή κάτι άλλο).
 
-Με αυτό τον τρόπο η σύνδεση γίνεται μόνον με το κλειδί. Στην συνέχεια, επανεκκινούμε την υπηρεσία SSH με την εντολή:
+Με αυτό τον τρόπο η σύνδεση γίνεται μόνον με το κλειδί και στην θύρα 4822 (και όχι στην γνωστή θύρα 22). 
+
+Στην συνέχεια, επανεκκινούμε την υπηρεσία SSH με την εντολή:
 
 ```bash
 sudo systemctl restart ssh
 ```
+και στο firewall:
+
+```bash
+sudo ufw limit 4822
+```
+και ενεργοποιούμε τον firewall:
+
+```bash
+sudo ufw enable
+```
+
+## Fail2Ban
+
+Αν και έχετε SSH Keys, το Fail2Ban είναι απαραίτητο για να μπλοκάρει επιθετικούς scanners σε επίπεδο IP.
+
+**Εγκατάσταση**: `sudo apt install fail2ban -y`.
+
+**Λειτουργία**: Θα μπλοκάρει αυτόματα όποια IP κάνει επαναλαμβανόμενες αποτυχημένες προσπάθειες σύνδεσης στο SSH σας.
