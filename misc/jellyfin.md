@@ -175,11 +175,32 @@ sudo nano /usr/bin/mount-media.sh
 
 ```bash
 #!/bin/bash
-# Mount Ταινίες
-rclone mount gdrive:Movies /home/media/movies --allow-other --vfs-cache-mode full --vfs-cache-max-size 10G --dir-cache-time 1000h &
 
-# Mount Σειρές
-rclone mount gdrive:TVShows /home/media/tvshows --allow-other --vfs-cache-mode full --vfs-cache-max-size 10G --dir-cache-time 1000h &
+# Καθαρισμός τυχόν κολλημένων mounts
+/usr/bin/fusermount -uz /home/media/movies
+/usr/bin/fusermount -uz /home/media/tvshows
+
+# Mount Movies (Με βελτιωμένο cache για streaming)
+/usr/bin/rclone mount gdrive:movies /home/media/movies \
+--allow-other \
+--vfs-cache-mode full \
+--vfs-cache-max-size 20G \
+--vfs-read-chunk-size 32M \
+--vfs-read-chunk-size-limit off \
+--buffer-size 32M \
+--dir-cache-time 1000h \
+--log-level INFO &
+
+# Mount TVShows
+/usr/bin/rclone mount gdrive:tvshows /home/media/tvshows \
+--allow-other \
+--vfs-cache-mode full \
+--vfs-cache-max-size 20G \
+--vfs-read-chunk-size 32M \
+--vfs-read-chunk-size-limit off \
+--buffer-size 32M \
+--dir-cache-time 1000h \
+--log-level INFO &
 
 wait
 ```
@@ -200,14 +221,16 @@ sudo nano /etc/systemd/system/rclone-media.service
 [Unit]
 Description=Rclone Mount Media (Movies and TV)
 After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 ExecStart=/usr/bin/mount-media.sh
-ExecStop=/bin/fusermount -u /home/media/movies
-ExecStop=/bin/fusermount -u /home/media/tvshows
-Restart=always
+Restart=on-failure
+RestartSec=10
 User=root
+# Σημαντικό: KillMode=mixed για να μην "σκοτώνει" βίαια το rclone
+KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target
@@ -216,8 +239,14 @@ WantedBy=multi-user.target
 Στην συνέχεια τρέχουμε:
 
 ```bash
+# Ενημέρωση του systemd για το νέο αρχείο
 sudo systemctl daemon-reload
-sudo systemctl enable --now rclone-media
+
+# Ενεργοποίηση ώστε να ξεκινάει μόνο του στο reboot
+sudo systemctl enable rclone-media
+
+# Άμεση εκκίνηση
+sudo systemctl start rclone-media
 ```
 
 Τέλος, κάνουμε επανεκκίνηση του Jellyfin server:
