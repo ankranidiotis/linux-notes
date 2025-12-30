@@ -100,6 +100,7 @@ ssh -L 8888:127.0.0.1:32400 root@IP_TOY_CONTABO -N
 - Προσοχή: Τσεκάρετε το κουτάκι "Allow me to access my media outside my home".
 - Προσθέστε τις βιβλιοθήκες επιλέγοντας τις διαδρομές /home/media/movies κλπ.
 - Μόλις ολοκληρώσετε, πηγαίνετε Settings > Remote Access και βεβαιωθείτε ότι το εικονίδιο είναι Πράσινο.
+- Αν ο server υπάρχει ήδη, τότε πρέπει να τον κάνουμε claim (Settings > Remote Access > Claim Server)
 
 6. Ρύθμιση Firewall (Αν χρησιμοποιείτε UFW)
 Επιτρέψτε την επικοινωνία στην πόρτα του Plex:
@@ -107,3 +108,5 @@ ssh -L 8888:127.0.0.1:32400 root@IP_TOY_CONTABO -N
 ```Bash
 sudo ufw allow 32400/tcp
 ```
+
+7. Ο Plex client σε υπολογιστή τρέχει μέσω web browser στην διεύθυνση http://contabo_vps_ip:32400/web
