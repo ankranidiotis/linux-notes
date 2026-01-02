@@ -187,3 +187,4 @@ Status: active
 [ 6] 32400 (v6) on tailscale0   ALLOW IN    Anywhere (v6)  
 ```
 Έτσι η πρόσβαση στον Plex Server (θύρα 32400) γίνεται **μόνον** μέσω του tailscale.
+
